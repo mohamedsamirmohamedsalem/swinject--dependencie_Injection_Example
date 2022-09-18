@@ -45,11 +45,12 @@ class ViewController: UIViewController {
         print(instanceFromBClass.doSomeThing())
         print(instanceFromCClass.doSomeThing())
         print(instanceFromCClass.logEvent)
-
-
-        //////////////    //////////////    //////////////    //////////////    //////////////    //////////////    //////////////    //////////////    //////////////    /////////////
-        //SwinjectStoryboard
         
+       
+    }
+    @IBAction func buttonTapped(_ sender: UIButton) {
+        let secondVC = Assembler.sharedAssembler.resolver.resolve(SecondViewController.self)!
+        present(secondVC, animated: true, completion: nil)
         
     }
 }
@@ -57,10 +58,10 @@ class ViewController: UIViewController {
 class AAssembly: Assembly {
     func assemble(container: Container){
         container.register(ABProtocol.self,name: "AClass") { resolver in
-            AClass()
+            return AClass()
         }
         container.register(ABProtocol.self, name: "BClass") { resolver in
-            BClass()
+            return BClass()
         }
     }
 }
@@ -69,7 +70,20 @@ class AAssembly: Assembly {
 class CAssembly: Assembly {
     func assemble(container: Container){
          container.register(CProtocol.self) { (resolver,logEvent: Int) in
-             CClass(logEvent: logEvent)
+            return CClass(logEvent: logEvent)
+         }
+    }
+}
+
+class SecondVCAssembly: Assembly {
+    func assemble(container: Container){
+        
+        container.register(ColorProvidedProtocol.self) { (resolver) in
+            return ColorProviding()
+         }
+        container.register(SecondViewController.self) { (resolver) in
+            let secondVC = SecondViewController(colorProvidedProtocol: resolver.resolve(ColorProvidedProtocol.self))
+            return secondVC
          }
     }
 }
@@ -80,7 +94,8 @@ extension Assembler{
         let assembler = Assembler(
             [
                 AAssembly(),
-                CAssembly()
+                CAssembly(),
+                SecondVCAssembly()
             ]
             ,container:container
         )
